@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"/>
+<title>Mirror — Know Yourself</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;width:100%;}
+:root{
+  --w:#FAFAF8;--ow:#F3F2EE;--st:#E8E6E0;--mu:#B0ADA6;
+  --ink:#1A1916;--il:#4A4843;--ac:#C8A96E;--as:#F0E8D8;
+  --rs:#F5E8E8;--red:#C97070;--gs:#E4EDE8;--grn:#6A9E7F;
+  --bs:#E4EAF0;--blu:#6A83A0;--dk:#0A0A0A;--dk2:#141414;--dk3:#1F1F1F;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--w);margin:0;padding:0;width:100%;height:100%;}
+
+/* PHONE */
+.phone{width:100%;height:100dvh;background:var(--w);border-radius:0;border:none;box-shadow:none;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto;position:relative;}
+.notch{display:none;}
+
+/* STATUS */
+.sb{display:flex;justify-content:space-between;align-items:center;padding:12px 22px 0;font-size:12px;font-weight:600;color:var(--ink);flex-shrink:0;position:relative;z-index:10;}
+.sb.dk-sb{color:#555;}
+.sb-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;letter-spacing:1px;}
+.sb-logo em{font-style:italic;color:var(--ac);}
+.sb-logo.lt{color:#F5F0E8;}
+.sb-r{display:flex;gap:8px;align-items:center;}
+.hbtn{width:32px;height:32px;border-radius:50%;background:var(--ow);border:1.5px solid var(--st);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s;}
+.hbtn:hover{background:var(--as);border-color:var(--ac);}
+.hbtn.lt{background:#1A1A1A;border-color:#333;color:#888;}
+
+/* SCREENS — fixed height, no scroll on today */
+.screen{display:none;flex-direction:column;overflow:hidden;min-height:0;}
+.screen.active{display:flex;flex-direction:column;min-height:0;}
+.screen.scrollable{overflow-y:auto;}
+.screen.scrollable::-webkit-scrollbar{display:none;}
+
+/* BOTTOM NAV */
+.bnav{display:flex;background:rgba(250,250,248,0.97);border-top:1px solid var(--st);padding:8px 0 20px;z-index:100;width:100%;}
+.bnav.dk{background:rgba(10,10,10,0.97);border-top:1px solid #1F1F1F;}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:all 0.2s;}
+.bni-ic{font-size:19px;}
+.bni-lb{font-size:10px;color:var(--mu);font-weight:500;}
+.bni.on .bni-lb{color:var(--ink);}
+.bni.on .bni-ic{transform:scale(1.1);}
+.bnav.dk .bni-lb{color:#444;}
+.bnav.dk .bni.on .bni-lb{color:var(--ac);}
+
+/* ═══ OVERLAYS ═══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:400;display:none;opacity:0;transition:opacity 0.25s;}
+.overlay.open{display:block;opacity:1;}
+
+/* HISTORY PANEL */
+.hpanel{position:fixed;top:0;right:0;bottom:0;width:88%;max-width:380px;background:var(--w);z-index:500;
+  transform:translateX(102%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);
+  display:flex;flex-direction:column;border-radius:0;box-shadow:-6px 0 24px rgba(0,0,0,0.15);}
+.hpanel.open{transform:translateX(0);}
+.hp-hd{padding:20px 18px 14px;border-bottom:1px solid var(--st);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hp-ttl{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink);}
+.hp-ttl em{font-style:italic;color:var(--ac);}
+.hp-x{width:30px;height:30px;border-radius:50%;background:var(--ow);border:1.5px solid var(--st);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
+.hp-srch{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--ow);border-bottom:1px solid var(--st);flex-shrink:0;}
+.hp-srch input{flex:1;border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);}
+.hp-srch input::placeholder{color:var(--mu);}
+.hp-flt{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--st);overflow-x:auto;flex-shrink:0;}
+.hp-flt::-webkit-scrollbar{display:none;}
+.hfc{flex-shrink:0;padding:5px 11px;border-radius:100px;font-size:11px;border:1.5px solid var(--st);background:transparent;cursor:pointer;color:var(--il);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.hfc.on{background:var(--ink);color:var(--w);border-color:var(--ink);}
+.hp-lst{flex:1;overflow-y:auto;}
+.hp-lst::-webkit-scrollbar{display:none;}
+.hpe{padding:13px 16px;border-bottom:1px solid var(--st);cursor:pointer;transition:background 0.15s;}
+.hpe:hover{background:var(--ow);}
+.hpe-t{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.hpe-dt{font-size:10px;color:var(--mu);font-weight:500;letter-spacing:0.5px;}
+.hpe-em{font-size:15px;}
+.hpe-tx{font-size:12px;color:var(--il);line-height:1.45;font-weight:300;}
+.hpe-tags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.hpe-tag{padding:2px 8px;border-radius:100px;font-size:9px;font-weight:500;}
+.hp-empty{padding:36px 16px;text-align:center;color:var(--mu);font-size:13px;}
+
+/* PROFILE PANEL */
+.ppanel{position:fixed;inset:0;background:var(--w);z-index:500;transform:translateY(102%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.ppanel::-webkit-scrollbar{display:none;}
+.ppanel.open{transform:translateY(0);}
+.pp-hd{padding:20px 22px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--st);flex-shrink:0;}
+.pp-bk{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--il);font-weight:500;}
+.pp-av-sec{display:flex;flex-direction:column;align-items:center;padding:24px 22px 18px;border-bottom:1px solid var(--st);}
+.pp-av{width:76px;height:76px;border-radius:50%;background:var(--as);border:3px solid var(--ac);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:10px;cursor:pointer;transition:transform 0.2s;}
+.pp-av:hover{transform:scale(1.05);}
+.pp-ni{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);border:none;outline:none;border-bottom:2px solid var(--ac);background:transparent;text-align:center;width:180px;}
+.pp-jd{font-size:11px;color:var(--mu);margin-top:4px;}
+.pp-pt{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--as);border-radius:100px;padding:5px 12px;font-size:11px;color:var(--ac);font-weight:500;}
+.pp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--st);}
+.pp-st{background:var(--w);padding:16px 8px;text-align:center;}
+.pp-sn{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);}
+.pp-sl{font-size:10px;color:var(--mu);margin-top:2px;}
+.pp-sec{padding:18px 22px;}
+.pp-sec-t{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:12px;font-weight:500;}
+.pp-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--st);}
+.pp-rl{font-size:13px;color:var(--il);}
+.pp-rv{font-size:13px;color:var(--ink);font-weight:500;}
+.pp-btn{width:100%;padding:13px;border-radius:13px;background:var(--ink);color:var(--w);border:none;cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin-top:14px;transition:all 0.2s;}
+.pp-btn:hover{background:var(--ac);}
+
+/* SHARE OVERLAY */
+.sh-ov{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.sh-ov.open{display:flex;}
+.sh-card{width:310px;background:var(--ink);border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+.sc-logo{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--w);}
+.sc-logo em{font-style:italic;color:var(--ac);}
+.sc-dt{font-size:10px;color:#555;letter-spacing:1px;text-transform:uppercase;}
+.sc-big{font-family:'Cormorant Garamond',serif;font-size:48px;color:var(--ac);line-height:1;}
+.sc-bl{font-size:11px;color:#555;margin-top:2px;}
+.sc-div{height:1px;background:#2A2A2A;margin:14px 0;}
+.sc-row{display:flex;gap:8px;margin-bottom:8px;}
+.sc-itm{flex:1;background:#141414;border-radius:11px;padding:11px 8px;}
+.sc-in{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--w);}
+.sc-il{font-size:9px;color:#555;margin-top:2px;}
+.sc-pat{background:#141410;border:1px solid #3A3020;border-radius:11px;padding:11px;margin-bottom:7px;}
+.sc-pt{font-size:9px;color:var(--ac);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.sc-px{font-size:11px;color:#AAA;line-height:1.4;}
+.sc-ft{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+.sc-ftx{font-size:10px;color:#444;}
+.sc-flogo{font-family:'Cormorant Garamond',serif;font-size:13px;color:#333;}
+.sc-flogo em{color:var(--ac);font-style:italic;}
+.sh-acts{display:flex;gap:10px;}
+.sh-btn{padding:11px 22px;border-radius:100px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.2s;}
+.sh-btn.pr{background:var(--ac);color:var(--ink);}
+.sh-btn.sc{background:#2A2A2A;color:#888;}
+
+/* DETAIL SHEET */
+.det-ov{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;display:none;align-items:flex-end;}
+.det-ov.open{display:flex;}
+.det-sh{width:100%;background:var(--dk2);border-radius:26px 26px 0 0;padding:22px;max-height:80%;overflow-y:auto;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);}
+.det-sh::-webkit-scrollbar{display:none;}
+.det-ov.open .det-sh{transform:translateY(0);}
+.ds-hdl{width:38px;height:4px;background:#333;border-radius:2px;margin:0 auto 18px;}
+.ds-bdg{display:inline-block;padding:4px 11px;border-radius:100px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:10px;}
+.ds-ttl{font-family:'Cormorant Garamond',serif;font-size:24px;color:#F5F0E8;margin-bottom:8px;line-height:1.3;}
+.ds-body{font-size:13px;color:#888;line-height:1.7;margin-bottom:14px;}
+.ds-body strong{color:#F0EBE0;}
+.ds-stats{display:flex;gap:8px;margin-bottom:14px;}
+.ds-stat{flex:1;background:#1A1A1A;border-radius:12px;padding:12px;text-align:center;}
+.ds-sn{font-family:'Cormorant Garamond',serif;font-size:26px;color:#F5F0E8;}
+.ds-sl{font-size:10px;color:#555;margin-top:2px;}
+.ds-tip{background:#1A180E;border:1px solid #3A3020;border-radius:12px;padding:13px;margin-bottom:14px;}
+.ds-tl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:5px;}
+.ds-tx{font-size:13px;color:#AAA;line-height:1.5;}
+.ds-cls{width:100%;padding:13px;border-radius:12px;background:#1A1A1A;color:#888;border:1px solid #2A2A2A;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;}
+
+/* CALM MODAL */
+.calm-ov{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:700;display:none;align-items:center;justify-content:center;flex-direction:column;gap:0;}
+.calm-ov.open{display:flex;}
+.calm-box{width:300px;background:linear-gradient(135deg,#0E1614,#101A16);border:1px solid #1E3028;border-radius:24px;padding:28px 24px;text-align:center;}
+.calm-emoji{font-size:48px;margin-bottom:14px;}
+.calm-ttl{font-family:'Cormorant Garamond',serif;font-size:22px;color:#E0F0E8;margin-bottom:8px;}
+.calm-sub{font-size:13px;color:#6A9E7F;line-height:1.5;margin-bottom:20px;}
+.calm-ring{width:80px;height:80px;margin:0 auto 20px;position:relative;}
+.calm-ring svg{transform:rotate(-90deg);}
+.calm-ring circle{fill:none;stroke:#1E3028;stroke-width:4;}
+.calm-ring .progress{stroke:var(--grn);stroke-linecap:round;stroke-dasharray:220;stroke-dashoffset:220;transition:stroke-dashoffset 1s linear;}
+.calm-ring-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:20px;color:#E0F0E8;}
+.calm-inst{font-size:13px;color:#6A9E7F;margin-bottom:20px;min-height:20px;}
+.calm-skip{padding:10px 24px;border-radius:100px;background:transparent;border:1px solid #1E3028;color:#555;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;}
+
+/* ═══ TODAY SCREEN ═══ */
+#s-today{background:var(--w);}
+.td-top{padding:13px 22px 14px;flex-shrink:0;}
+.td-date{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:5px;}
+.td-gr{font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:500;line-height:1.2;color:var(--ink);}
+.td-gr em{font-style:italic;color:var(--ac);}
+.streak-pill{display:inline-flex;align-items:center;gap:5px;background:var(--as);border-radius:100px;padding:4px 11px;font-size:11px;font-weight:600;color:var(--ac);margin-top:8px;}
+
+/* WRITE CARD */
+.wcard{margin:0 14px 12px;background:var(--w);border:1.5px solid var(--st);border-radius:20px;padding:18px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.05);flex-shrink:0;}
+.wc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.wc-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);font-weight:500;}
+.wc-tm{font-size:10px;color:var(--mu);}
+.wtxt{width:100%;border:none;outline:none;resize:none;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.7;color:var(--ink);background:transparent;height:88px;font-weight:300;}
+.wtxt::placeholder{color:#D4D0C8;}
+.ai-box{background:var(--as);border-radius:12px;padding:10px 12px;border-left:3px solid var(--ac);margin-top:8px;display:none;}
+.ai-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);font-weight:600;margin-bottom:3px;}
+.ai-txt{font-size:11px;color:#7A6A50;line-height:1.5;font-style:italic;}
+.wdiv{height:1px;background:var(--st);margin:12px 0;}
+.mood-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:8px;}
+.mood-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.mchip{padding:5px 12px;border-radius:100px;font-size:11px;cursor:pointer;border:1.5px solid var(--st);background:transparent;transition:all 0.2s;color:var(--il);font-family:'DM Sans',sans-serif;}
+.mchip:hover,.mchip.on{border-color:var(--ac);background:var(--as);}
+.wacts{display:flex;align-items:center;justify-content:space-between;}
+.mic-b{width:46px;height:46px;border-radius:50%;background:var(--ink);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:all 0.3s;}
+.mic-b:hover{background:var(--ac);transform:scale(1.05);}
+.mic-b.rec{background:var(--red);animation:pmic 1.4s infinite;}
+@keyframes pmic{0%,100%{box-shadow:0 0 0 0 rgba(201,112,112,0.45);}50%{box-shadow:0 0 0 12px rgba(201,112,112,0);}}
+.acts-r{display:flex;gap:7px;align-items:center;}
+.tbtn{padding:7px 12px;border-radius:10px;background:var(--ow);border:1.5px solid var(--st);font-size:11px;color:var(--il);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.tbtn:hover{border-color:var(--ink);}
+.svbtn{padding:9px 20px;border-radius:100px;background:var(--ink);color:var(--w);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.svbtn:hover{background:var(--ac);transform:translateY(-1px);}
+
+/* REC BAR */
+.recbar{display:none;align-items:center;gap:8px;background:var(--rs);border-radius:12px;padding:8px 14px;margin:0 14px 10px;border:1.5px solid var(--red);flex-shrink:0;}
+.recbar.show{display:flex;}
+.recdot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:bdot 1s infinite;}
+@keyframes bdot{0%,100%{opacity:1}50%{opacity:0.3}}
+.recwv{display:flex;gap:2px;align-items:center;margin-left:auto;}
+.rw{width:3px;background:var(--red);border-radius:2px;animation:rwv 0.8s infinite;}
+.rw:nth-child(1){height:8px;animation-delay:0s;}
+.rw:nth-child(2){height:14px;animation-delay:0.15s;}
+.rw:nth-child(3){height:10px;animation-delay:0.3s;}
+.rw:nth-child(4){height:16px;animation-delay:0.1s;}
+.rw:nth-child(5){height:8px;animation-delay:0.25s;}
+@keyframes rwv{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
+
+/* TAGS */
+.qt-sec{padding:0 14px 10px;flex-shrink:0;}
+.qt-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:8px;}
+.qt-row{display:flex;flex-wrap:wrap;gap:5px;}
+.qtc{padding:5px 12px;border-radius:100px;font-size:11px;border:1.5px solid var(--st);background:var(--ow);cursor:pointer;transition:all 0.15s;color:var(--il);font-family:'DM Sans',sans-serif;}
+.qtc.on{border-color:var(--ink);background:var(--w);font-weight:500;}
+
+/* FILTER + SEARCH */
+.flt-sec{padding:0 14px 8px;flex-shrink:0;}
+.flt-row{display:flex;gap:5px;overflow-x:auto;}
+.flt-row::-webkit-scrollbar{display:none;}
+.fc{flex-shrink:0;padding:5px 12px;border-radius:100px;font-size:11px;border:1.5px solid var(--st);background:transparent;cursor:pointer;color:var(--mu);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.fc.on{background:var(--ink);color:var(--w);border-color:var(--ink);}
+.srch{display:flex;align-items:center;gap:7px;background:var(--ow);border:1.5px solid var(--st);border-radius:12px;padding:9px 13px;margin:0 14px 10px;flex-shrink:0;}
+.srch input{flex:1;border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink);}
+.srch input::placeholder{color:var(--mu);}
+
+/* ENTRIES — scrollable section */
+.entries-wrap{flex:1;overflow-y:auto;padding:0 14px 12px;min-height:0;}
+.entries-wrap::-webkit-scrollbar{display:none;}
+.sec-t{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:10px;font-weight:500;}
+.ec{background:var(--w);border:1.5px solid var(--st);border-radius:16px;padding:13px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,0.03);transition:transform 0.15s;}
+.ec:hover{transform:translateY(-1px);}
+.ect{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.ectm{font-size:10px;color:var(--mu);font-weight:500;letter-spacing:0.5px;}
+.ecem{font-size:17px;}
+.ectx{font-size:12px;color:var(--il);line-height:1.5;font-weight:300;}
+.ectags{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap;}
+.etag{padding:2px 8px;border-radius:100px;font-size:10px;font-weight:500;}
+.t-work{background:var(--bs);color:var(--blu);}
+.t-mood{background:var(--as);color:var(--ac);}
+.t-health{background:var(--gs);color:var(--grn);}
+.t-stress{background:var(--rs);color:var(--red);}
+.t-food{background:#EDF5E4;color:#5A8A3A;}
+.t-sleep{background:#E8EAF5;color:#5A62A0;}
+.t-money{background:#F5F0E4;color:#8A6A20;}
+.t-family{background:#F5E8F0;color:#8A4A70;}
+.t-new{background:#E8F0EA;color:#4A8A5E;}
+
+/* ═══ MOOD SCREEN ═══ */
+#s-mood{background:var(--w);overflow-y:auto;}
+.ms-hd{padding:13px 22px 14px;}
+.ms-ttl{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--ink);}
+.ms-ttl em{font-style:italic;color:var(--ac);}
+.ms-sub{font-size:12px;color:var(--mu);margin-top:3px;}
+.mnav{display:flex;justify-content:space-between;align-items:center;padding:0 20px 11px;}
+.mnavnm{font-size:14px;font-weight:600;color:var(--ink);}
+.mnavarr{font-size:18px;color:var(--mu);cursor:pointer;padding:4px 8px;user-select:none;}
+.cal-w{padding:0 14px;}
+.cal-dlr{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;}
+.cal-dl{text-align:center;font-size:10px;color:var(--mu);font-weight:500;padding:3px 0;}
+.cal-gr{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cc{aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mu);background:var(--ow);position:relative;flex-direction:column;cursor:pointer;transition:transform 0.15s;}
+.cc:hover{transform:scale(1.08);}
+.cc.today{background:var(--ink);color:var(--w);font-weight:600;}
+.mdot{width:4px;height:4px;border-radius:50%;position:absolute;bottom:2px;}
+.mood-leg{display:flex;gap:8px;padding:10px 14px;flex-wrap:wrap;}
+.mli{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu);}
+.mld{width:7px;height:7px;border-radius:50%;}
+
+/* MOOD SCROLL AREA */
+.mood-scroll{padding:0 14px 12px;}
+
+
+/* WEEK GRAPH */
+.wgc{background:var(--w);border:1.5px solid var(--st);border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+.wgc-l{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:11px;}
+.wgc-bs{display:flex;align-items:flex-end;gap:5px;height:50px;}
+.wgb{flex:1;border-radius:3px 3px 0 0;transition:all 0.3s;cursor:pointer;}
+.wgb:hover{opacity:0.75;}
+.wgc-ls{display:flex;gap:5px;margin-top:4px;}
+.wgl{flex:1;text-align:center;font-size:9px;color:var(--mu);}
+
+/* MONTHLY STATS */
+.mstats{background:var(--w);border:1.5px solid var(--st);border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+.mstats-t{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:12px;}
+.mstats-row{display:flex;gap:8px;margin-bottom:8px;}
+.mstat{flex:1;background:var(--ow);border-radius:12px;padding:12px 8px;text-align:center;}
+.msn{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink);}
+.msl{font-size:9px;color:var(--mu);margin-top:2px;}
+.emo-sum{background:var(--gs);border-radius:14px;padding:13px 15px;margin-bottom:10px;}
+.es-l{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grn);margin-bottom:3px;font-weight:600;}
+.es-t{font-size:13px;color:#2D4A38;font-weight:500;}
+.es-s{font-size:10px;color:var(--grn);margin-top:2px;}
+
+/* ═══ INSIGHTS SCREEN ═══ */
+#s-insights{background:var(--dk);}
+.ins-hd{padding:13px 22px 14px;flex-shrink:0;}
+.ins-ttl{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:#F5F0E8;line-height:1.2;}
+.ins-ttl em{font-style:italic;color:var(--ac);}
+.ins-sub{font-size:11px;color:#555;margin-top:3px;}
+
+/* INSIGHTS SCROLL */
+.ins-scroll{flex:1;overflow-y:auto;padding:0 14px 12px;min-height:0;}
+.ins-scroll::-webkit-scrollbar{display:none;}
+.icard{border-radius:16px;padding:14px;border:1px solid #1F1F1F;cursor:pointer;transition:transform 0.15s;margin-bottom:9px;}
+.icard:hover{transform:translateY(-2px);}
+.icard.gld{background:#141410;border-color:#3A3020;}
+.icard.grn{background:#101614;border-color:#1E3028;}
+.icard.rdc{background:#140E0E;border-color:#301818;}
+.icard.blc{background:#0E1018;border-color:#1A2040;}
+.icard.prc{background:#110E18;border-color:#2A1A40;}
+.icr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
+.ibdg{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;padding:3px 9px;border-radius:100px;}
+.bg-gld{background:rgba(200,169,110,0.15);color:var(--ac);}
+.bg-grn{background:rgba(106,158,127,0.15);color:var(--grn);}
+.bg-red{background:rgba(201,112,112,0.15);color:var(--red);}
+.bg-blu{background:rgba(106,131,160,0.15);color:var(--blu);}
+.bg-prc{background:rgba(150,100,200,0.15);color:#B08AD4;}
+.iem{font-size:20px;}
+.ibdy{font-size:12px;color:#888;line-height:1.55;font-weight:300;}
+.ibdy strong{color:#F0EBE0;font-weight:500;}
+.inum{font-family:'Cormorant Garamond',serif;font-size:26px;color:#F0EBE0;margin-top:6px;line-height:1;}
+.inum span{font-size:11px;color:#555;font-family:'DM Sans',sans-serif;}
+.itap{font-size:9px;color:#444;margin-top:5px;}
+
+/* WORD CLOUD */
+.wcc{background:#111;border:1px solid #1F1F1F;border-radius:16px;padding:14px;margin-bottom:9px;}
+.wcc-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:9px;}
+.wcloud{display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+
+/* PROMPT + SHARE */
+.pcard{background:#111;border:1px solid #222;border-radius:16px;padding:14px;margin-bottom:9px;}
+.pc-l{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#555;margin-bottom:6px;}
+.pc-q{font-size:13px;color:#888;font-style:italic;line-height:1.5;}
+.pc-b{margin-top:10px;background:#1A1A1A;border:1px solid #2A2A2A;border-radius:100px;padding:7px 14px;font-size:11px;color:var(--ac);display:inline-block;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.shr-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#141414;border:1px solid #2A2A2A;border-radius:13px;padding:12px;cursor:pointer;transition:all 0.2s;margin-bottom:9px;}
+.shr-btn:hover{border-color:var(--ac);}
+.shr-btn span{font-size:12px;color:#666;}
+.shr-btn .slbl{color:var(--ac);font-weight:500;}
+
+/* WEEKLY SUMMARY */
+.wsum{background:#0E1018;border:1px solid #1A2040;border-radius:16px;padding:14px;margin-bottom:9px;}
+.wsum-l{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blu);margin-bottom:6px;font-weight:600;}
+.wsum-t{font-family:'Cormorant Garamond',serif;font-size:18px;color:#D0DCE8;margin-bottom:6px;}
+.wsum-b{font-size:12px;color:#888;line-height:1.5;}
+
+/* ═══ PROGRESS SCREEN ═══ */
+#s-progress{background:var(--w);}
+.pg-hd{padding:13px 22px 14px;flex-shrink:0;}
+.pg-ttl{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--ink);}
+.pg-ttl em{font-style:italic;color:var(--ac);}
+.pg-sub{font-size:12px;color:var(--mu);margin-top:3px;}
+.pg-scroll{flex:1;overflow-y:auto;padding:0 14px 16px;min-height:0;}
+.pg-scroll::-webkit-scrollbar{display:none;}
+
+/* PROFILE CARD */
+.profcard{background:var(--ink);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;margin-bottom:11px;}
+.profcard:hover{transform:translateY(-1px);}
+.pca{width:48px;height:48px;border-radius:50%;background:var(--as);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.pci{flex:1;}
+.pcn{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--w);}
+.pct{font-size:10px;color:#555;margin-top:1px;}
+.pcpt{display:inline-flex;align-items:center;gap:4px;margin-top:5px;background:rgba(200,169,110,0.15);border-radius:100px;padding:3px 9px;font-size:10px;color:var(--ac);font-weight:500;}
+.pcar{font-size:16px;color:#444;}
+
+/* STREAK */
+.strk-h{background:var(--ink);border-radius:18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.strk-n{font-family:'Cormorant Garamond',serif;font-size:50px;color:var(--ac);line-height:1;}
+.strk-l{font-size:10px;color:#555;margin-top:1px;}
+.strk-f{font-size:44px;}
+
+/* WEEK DOTS */
+.wk-sec{margin-bottom:11px;}
+.wk-l{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:8px;}
+.wk-row{display:flex;gap:5px;}
+.wkd{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.wkc{width:32px;height:32px;border-radius:50%;background:var(--ow);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mu);}
+.wkc.done{background:var(--ink);color:var(--w);}
+.wkc.today{background:var(--ac);color:var(--w);}
+.wkn{font-size:9px;color:var(--mu);}
+
+/* XP */
+.xpc{background:var(--w);border:1.5px solid var(--st);border-radius:16px;padding:16px;margin-bottom:11px;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+.xpt{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.xpl{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);}
+.xpl span{font-size:12px;color:var(--mu);font-family:'DM Sans',sans-serif;}
+.xpic{font-size:28px;}
+.xpi{display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-bottom:5px;}
+.xpb{height:6px;background:var(--st);border-radius:100px;overflow:hidden;}
+.xpf{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--ac),#E8C078);width:72%;}
+.xps{font-size:11px;color:var(--mu);margin-top:6px;line-height:1.5;}
+
+/* STATS */
+.sts-row{display:flex;gap:7px;margin-bottom:11px;}
+.stb{flex:1;background:var(--ow);border-radius:13px;padding:13px 7px;text-align:center;}
+.stn{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);}
+.stl{font-size:10px;color:var(--mu);margin-top:2px;}
+
+/* HEATMAP */
+.hmc{background:var(--w);border:1.5px solid var(--st);border-radius:16px;padding:16px;margin-bottom:11px;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+.hmc-l{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:2px;}
+.hmc-t{font-size:12px;color:var(--ink);font-weight:500;margin-bottom:9px;}
+.hmap{display:flex;flex-wrap:wrap;gap:3px;}
+.hc{width:18px;height:18px;border-radius:4px;background:var(--st);cursor:pointer;transition:transform 0.15s;}
+.hc:hover{transform:scale(1.15);}
+.hc.l1{background:#E4EDE8;}.hc.l2{background:#B8D4BE;}.hc.l3{background:#6A9E7F;}.hc.l4{background:#3D7A56;}
+
+/* SVG CHART */
+.chart-card{background:var(--w);border:1.5px solid var(--st);border-radius:16px;padding:16px;margin-bottom:11px;box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+.chart-ttl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:10px;}
+svg.linechart{width:100%;height:80px;overflow:visible;}
+
+/* BADGES */
+.bdgs-sec{margin-bottom:16px;}
+.bdgs-l{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:9px;}
+.bdgs-gr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.bdgb{background:var(--ow);border:1.5px solid var(--st);border-radius:13px;padding:11px 5px;text-align:center;transition:all 0.2s;cursor:pointer;}
+.bdgb:hover{border-color:var(--ac);background:var(--as);}
+.bdgb.lk{opacity:0.35;}
+.bdge{font-size:20px;margin-bottom:3px;}
+.bdgn{font-size:9px;color:var(--il);font-weight:500;}
+.bdgd{font-size:8px;color:var(--mu);margin-top:1px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--w);padding:11px 22px;border-radius:100px;font-size:13px;font-weight:500;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:9999;white-space:nowrap;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fin{animation:fadeUp 0.3s ease forwards;}
+
+/* ENTRY DETAIL PANEL */
+.ed-panel{position:fixed;inset:0;background:var(--w);z-index:600;transform:translateX(102%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;}
+.ed-panel.open{transform:translateX(0);}
+.ed-hd{padding:20px 22px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--st);flex-shrink:0;}
+.ed-title{font-family:"Cormorant Garamond",serif;font-size:18px;color:var(--ink);}
+.ed-body{flex:1;overflow-y:auto;padding:24px 22px;}
+.ed-body::-webkit-scrollbar{display:none;}
+.ed-em{font-size:42px;margin-bottom:12px;}
+.ed-time{font-size:10px;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;}
+.ed-text{font-family:"Cormorant Garamond",serif;font-size:20px;color:var(--ink);line-height:1.7;font-weight:400;margin-bottom:20px;}
+.ed-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.ed-mood-pill{display:inline-flex;align-items:center;gap:6px;background:var(--as);border-radius:100px;padding:6px 14px;font-size:12px;color:var(--ac);font-weight:500;}
+
+
+/* ═══ ONBOARDING ═══ */
+.ob-screen{position:fixed;inset:0;background:var(--w);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;transition:opacity 0.5s,transform 0.5s;}
+.ob-screen.hide{opacity:0;transform:scale(0.96);pointer-events:none;}
+.ob-logo-big{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:500;color:var(--ink);letter-spacing:2px;margin-bottom:8px;}
+.ob-logo-big em{font-style:italic;color:var(--ac);}
+.ob-tagline{font-size:13px;color:var(--mu);margin-bottom:48px;letter-spacing:1px;}
+.ob-step{width:100%;display:none;flex-direction:column;align-items:center;}
+.ob-step.active{display:flex;}
+.ob-emoji{font-size:48px;margin-bottom:16px;}
+.ob-q{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);text-align:center;line-height:1.3;margin-bottom:8px;}
+.ob-q em{font-style:italic;color:var(--ac);}
+.ob-hint{font-size:12px;color:var(--mu);margin-bottom:28px;text-align:center;}
+.ob-input{width:100%;border:none;border-bottom:2px solid var(--st);outline:none;font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink);background:transparent;text-align:center;padding:8px 0;margin-bottom:32px;transition:border-color 0.2s;}
+.ob-input:focus{border-color:var(--ac);}
+.ob-input::placeholder{color:var(--st);}
+.ob-btn{width:100%;padding:15px;border-radius:100px;background:var(--ink);color:var(--w);border:none;cursor:pointer;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-bottom:12px;}
+.ob-btn:hover{background:var(--ac);}
+.ob-skip{font-size:12px;color:var(--mu);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'DM Sans',sans-serif;}
+.ob-dots{display:flex;gap:6px;margin-bottom:32px;}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--st);}
+.ob-dot.on{background:var(--ac);width:18px;border-radius:3px;}
+.ob-progress{width:100%;height:3px;background:var(--st);border-radius:2px;margin-bottom:40px;}
+.ob-progress-fill{height:100%;background:var(--ac);border-radius:2px;transition:width 0.4s;}
+
+/* ═══ NOTIFICATION PROMPT ═══ */
+.notif-ov{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:8000;display:none;align-items:flex-end;justify-content:center;}
+.notif-ov.open{display:flex;}
+.notif-sheet{width:100%;background:var(--w);border-radius:28px 28px 0 0;padding:28px 24px 40px;text-align:center;}
+.notif-emoji{font-size:40px;margin-bottom:12px;}
+.notif-ttl{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);margin-bottom:8px;}
+.notif-sub{font-size:13px;color:var(--mu);line-height:1.5;margin-bottom:24px;}
+.notif-btn{width:100%;padding:14px;border-radius:100px;background:var(--ink);color:var(--w);border:none;cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin-bottom:10px;transition:all 0.2s;}
+.notif-btn:hover{background:var(--ac);}
+.notif-skip{font-size:12px;color:var(--mu);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;}
+
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="notch"></div>
+
+  <!-- STATUS BAR -->
+  <div class="sb" id="sb">
+    <span id="sbt">9:41</span>
+    <div class="sb-logo" id="sblogo">Mirror</div>
+    <div class="sb-r">
+      <div class="hbtn" id="hbtn" onclick="openH()" title="History">📋</div>
+    </div>
+  </div>
+
+  <!-- ══ TODAY ══ -->
+  <div class="screen active fin" id="s-today">
+    <div class="td-top">
+      <div class="td-date" id="tddate">Monday · March 24 · 2026</div>
+      <div class="td-gr" id="td-greeting">How was your<br/><em>day so far?</em></div>
+      <div class="streak-pill">🔥 14 day streak</div>
+    </div>
+    <div class="recbar" id="recbar">
+      <div class="recdot"></div>
+      <span style="font-size:12px;color:var(--red);font-weight:500">Recording... speak freely</span>
+      <div class="recwv"><div class="rw"></div><div class="rw"></div><div class="rw"></div><div class="rw"></div><div class="rw"></div></div>
+    </div>
+    <div class="wcard">
+      <div class="wc-top">
+        <div class="wc-lbl">Today's Entry</div>
+        <div class="wc-tm" id="etm">Just now</div>
+      </div>
+      <textarea class="wtxt" id="mta" placeholder="I woke up feeling... my meeting went... I'm worried about... I'm proud of..."></textarea>
+      <div class="ai-box" id="aibox">
+        <div class="ai-lbl">✦ Mirror suggests</div>
+        <div class="ai-txt" id="aitxt"></div>
+      </div>
+      <div class="wdiv"></div>
+      <div class="mood-lbl">How do you feel?</div>
+      <div class="mood-row" id="mrow">
+        <button class="mchip" onclick="pickMood(this,'calm','😌')">😌 Calm</button>
+        <button class="mchip" onclick="pickMood(this,'anxious','😟')">😟 Anxious</button>
+        <button class="mchip" onclick="pickMood(this,'good','🙂')">🙂 Good</button>
+        <button class="mchip" onclick="pickMood(this,'low','😔')">😔 Low</button>
+        <button class="mchip" onclick="pickMood(this,'happy','😊')">😊 Happy</button>
+        <button class="mchip" onclick="pickMood(this,'frustrated','😤')">😤 Frustrated</button>
+      </div>
+      <div class="wacts">
+        <button class="mic-b" id="micb" onclick="togMic()">🎙</button>
+        <div class="acts-r">
+          <button class="tbtn" onclick="doPrompt()">✦ Prompt</button>
+          <button class="svbtn" onclick="saveE()">Save →</button>
+        </div>
+      </div>
+    </div>
+    <div class="qt-sec">
+      <div class="qt-lbl">Quick tags</div>
+      <div class="qt-row">
+        <button class="qtc" onclick="togTag(this,'work','💼 Work')">💼 Work</button>
+        <button class="qtc" onclick="togTag(this,'sleep','😴 Sleep')">😴 Sleep</button>
+        <button class="qtc" onclick="togTag(this,'money','💸 Money')">💸 Money</button>
+        <button class="qtc" onclick="togTag(this,'health','🏃 Health')">🏃 Health</button>
+        <button class="qtc" onclick="togTag(this,'family','🏠 Family')">🏠 Family</button>
+        <button class="qtc" onclick="togTag(this,'food','🥗 Food')">🥗 Food</button>
+        <button class="qtc" onclick="togTag(this,'exercise','💪 Exercise')">💪 Exercise</button>
+        <button class="qtc" onclick="togTag(this,'relationship','❤️ Love')">❤️ Love</button>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- ══ MOOD ══ -->
+  <div class="screen scrollable" id="s-mood">
+    <div class="ms-hd">
+      <div class="ms-ttl">Your mood,<br/><em>over time</em></div>
+      <div class="ms-sub">Tap any day to see your entry</div>
+    </div>
+    <div class="mnav">
+      <span class="mnavarr" onclick="chMon(-1)">‹</span>
+      <span class="mnavnm" id="monnm">March 2026</span>
+      <span class="mnavarr" onclick="chMon(1)">›</span>
+    </div>
+    <div class="cal-w">
+      <div class="cal-dlr"><div class="cal-dl">M</div><div class="cal-dl">T</div><div class="cal-dl">W</div><div class="cal-dl">T</div><div class="cal-dl">F</div><div class="cal-dl">S</div><div class="cal-dl">S</div></div>
+      <div class="cal-gr" id="calgr"></div>
+    </div>
+    <div class="mood-leg">
+      <div class="mli"><div class="mld" style="background:#C97070"></div>Anxious</div>
+      <div class="mli"><div class="mld" style="background:#C8A96E"></div>Neutral</div>
+      <div class="mli"><div class="mld" style="background:#6A9E7F"></div>Good</div>
+      <div class="mli"><div class="mld" style="background:#6A83A0"></div>Calm</div>
+    </div>
+    <div class="mood-scroll">
+      <div class="wgc">
+        <div class="wgc-l">Weekly mood trend</div>
+        <div class="wgc-bs">
+          <div class="wgb" style="height:38%;background:var(--rs);border:1.5px solid var(--red)"></div>
+          <div class="wgb" style="height:58%;background:var(--as);border:1.5px solid var(--ac)"></div>
+          <div class="wgb" style="height:44%;background:var(--rs);border:1.5px solid var(--red)"></div>
+          <div class="wgb" style="height:72%;background:var(--gs);border:1.5px solid var(--grn)"></div>
+          <div class="wgb" style="height:62%;background:var(--as);border:1.5px solid var(--ac)"></div>
+          <div class="wgb" style="height:84%;background:var(--gs);border:1.5px solid var(--grn)"></div>
+          <div class="wgb" style="height:78%;background:var(--gs);border:1.5px solid var(--grn)"></div>
+        </div>
+        <div class="wgc-ls"><div class="wgl">M</div><div class="wgl">T</div><div class="wgl">W</div><div class="wgl">T</div><div class="wgl">F</div><div class="wgl">S</div><div class="wgl">S</div></div>
+      </div>
+      <div class="mstats">
+        <div class="mstats-t">Monthly overview</div>
+        <div class="mstats-row">
+          <div class="mstat"><div class="msn">12</div><div class="msl">Calm days 😌</div></div>
+          <div class="mstat"><div class="msn">6</div><div class="msl">Anxious days 😟</div></div>
+          <div class="mstat"><div class="msn">5</div><div class="msl">Happy days 😊</div></div>
+        </div>
+        <div class="mstats-row">
+          <div class="mstat"><div class="msn">23</div><div class="msl">Days recorded</div></div>
+          <div class="mstat"><div class="msn">3</div><div class="msl">Missed days</div></div>
+          <div class="mstat"><div class="msn">88%</div><div class="msl">Consistency</div></div>
+        </div>
+      </div>
+      <div class="emo-sum">
+        <div class="es-l">✦ This month</div>
+        <div class="es-t">Most felt: Calm 😌 · 12 days</div>
+        <div class="es-s">You write most on Sunday evenings</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ INSIGHTS ══ -->
+  <div class="screen" id="s-insights" style="background:var(--dk)">
+    <div class="ins-hd">
+      <div class="ins-ttl">What Mirror<br/><em>found in you</em></div>
+      <div class="ins-sub">67 entries analysed · tap any card for full detail</div>
+    </div>
+    <div class="ins-scroll">
+      <div class="icard gld" onclick="openDet('pattern')">
+        <div class="icr"><span class="ibdg bg-gld">Pattern</span><span class="iem">📅</span></div>
+        <div class="ibdy"><strong>You're more anxious on Mondays.</strong> 9 weeks in a row. Always with work stress and skipped breakfast.</div>
+        <div class="inum">9× <span>in a row</span></div>
+        <div class="itap">👆 Tap for full analysis</div>
+      </div>
+      <div class="icard grn" onclick="openDet('growth')">
+        <div class="icr"><span class="ibdg bg-grn">Growth</span><span class="iem">💪</span></div>
+        <div class="ibdy"><strong>Sleep improves after exercise.</strong> Confirmed 11 times. Your body is telling you something clear.</div>
+        <div class="itap">👆 Tap for full analysis</div>
+      </div>
+      <div class="icard rdc" onclick="openDet('watch')">
+        <div class="icr"><span class="ibdg bg-red">Watch</span><span class="iem">💸</span></div>
+        <div class="ibdy"><strong>You overspend when stressed.</strong> 7 out of 7 times. Not random.</div>
+        <div class="inum">7/7 <span>times</span></div>
+        <div class="itap">👆 Tap for full analysis</div>
+      </div>
+      <div class="icard blc" onclick="openDet('personality')">
+        <div class="icr"><span class="ibdg bg-blu">Personality</span><span class="iem">🌙</span></div>
+        <div class="ibdy"><strong>You think best at night.</strong> 74% of entries after 9 PM. Deeper, longer, more honest.</div>
+        <div class="itap">👆 Tap for full analysis</div>
+      </div>
+      <div class="icard prc" onclick="openDet('bestday')">
+        <div class="icr"><span class="ibdg bg-prc">Best Day</span><span class="iem">⭐</span></div>
+        <div class="ibdy"><strong>Your best days have a formula.</strong> Sleep before midnight + move your body. Zero exceptions in your data.</div>
+        <div class="itap">👆 Tap for full analysis</div>
+      </div>
+      <div class="wsum">
+        <div class="wsum-l">✦ Weekly Summary</div>
+        <div class="wsum-t">This week you wrote 5 times.</div>
+        <div class="wsum-b">Mood trended upward — Monday was rough but by Friday you were in a good place. Your most written-about topic: work. Most common feeling: calm. You're making progress.</div>
+      </div>
+      <div class="wcc">
+        <div class="wcc-l">Most mentioned · 30 days</div>
+        <div class="wcloud">
+          <span style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#F0EBE0">work</span>
+          <span style="font-size:14px;color:#555">sleep</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--red)">stress</span>
+          <span style="font-size:13px;color:#555">money</span>
+          <span style="font-size:16px;color:var(--grn)">exercise</span>
+          <span style="font-size:11px;color:#444">family</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ac)">tired</span>
+          <span style="font-size:14px;color:var(--blu)">food</span>
+          <span style="font-size:15px;color:#888">morning</span>
+          <span style="font-size:12px;color:var(--grn)">grateful</span>
+          <span style="font-size:16px;color:#666">chai</span>
+          <span style="font-size:11px;color:#444">dad</span>
+        </div>
+      </div>
+      <div class="pcard">
+        <div class="pc-l">✦ Today's prompt</div>
+        <div class="pc-q" id="dprompt">"What's one thing you keep putting off — and what are you really afraid of?"</div>
+        <button class="pc-b" onclick="goTo('today')">Answer this →</button>
+      </div>
+      <div class="shr-btn" onclick="openSh()">
+        <span>📤</span><span class="slbl">Share your insights</span><span>→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PROGRESS ══ -->
+  <div class="screen" id="s-progress">
+    <div class="pg-hd">
+      <div class="pg-ttl">Your growth,<br/><em>measured.</em></div>
+      <div class="pg-sub">Every entry builds who you are becoming</div>
+    </div>
+    <div class="pg-scroll">
+      <div class="profcard" onclick="openProf()">
+        <div class="pca" id="pcav">🧑</div>
+        <div class="pci">
+          <div class="pcn" id="pcnm">Your Profile</div>
+          <div class="pct">Member since March 2026 · 67 entries</div>
+          <div class="pcpt">🌙 Night Reflector</div>
+        </div>
+        <div class="pcar">›</div>
+      </div>
+      <div class="strk-h">
+        <div><div class="strk-n">14</div><div class="strk-l">Day streak</div></div>
+        <div class="strk-f">🔥</div>
+      </div>
+      <div class="wk-sec">
+        <div class="wk-l">This week</div>
+        <div class="wk-row" id="wkrow"></div>
+      </div>
+      <div class="xpc">
+        <div class="xpt">
+          <div>
+            <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:3px">Self-awareness level</div>
+            <div class="xpl">14 <span>/ 50</span></div>
+          </div>
+          <div class="xpic">🪞</div>
+        </div>
+        <div class="xpi"><span>2,340 XP</span><span>Next: 2,500 XP</span></div>
+        <div class="xpb"><div class="xpf"></div></div>
+        <div class="xps">Write daily, find patterns, hit streaks to earn XP and grow your level.</div>
+      </div>
+      <div class="sts-row">
+        <div class="stb"><div class="stn">67</div><div class="stl">Total entries</div></div>
+        <div class="stb"><div class="stn">5</div><div class="stl">Patterns</div></div>
+        <div class="stb"><div class="stn">84%</div><div class="stl">Consistency</div></div>
+      </div>
+      <!-- LINE CHART -->
+      <div class="chart-card">
+        <div class="chart-ttl">Mood score · last 14 days</div>
+        <svg class="linechart" id="lc" viewBox="0 0 330 80" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="hmc">
+        <div class="hmc-l">Entry consistency</div>
+        <div class="hmc-t">67 days recorded out of 84</div>
+        <div class="hmap" id="hmap"></div>
+      </div>
+      <div class="bdgs-sec">
+        <div class="bdgs-l">Badges earned</div>
+        <div class="bdgs-gr">
+          <div class="bdgb"><div class="bdge">🔥</div><div class="bdgn">On Fire</div><div class="bdgd">14 day streak</div></div>
+          <div class="bdgb"><div class="bdge">🪞</div><div class="bdgn">Reflector</div><div class="bdgd">First entry</div></div>
+          <div class="bdgb"><div class="bdge">🧠</div><div class="bdgn">Pattern</div><div class="bdgd">First insight</div></div>
+          <div class="bdgb"><div class="bdge">📅</div><div class="bdgn">Month Strong</div><div class="bdgd">30 days</div></div>
+          <div class="bdgb lk"><div class="bdge">💎</div><div class="bdgn">Deep Diver</div><div class="bdgd">100 entries</div></div>
+          <div class="bdgb lk"><div class="bdge">🌙</div><div class="bdgn">Night Owl</div><div class="bdgd">10 late entries</div></div>
+          <div class="bdgb lk"><div class="bdge">🏆</div><div class="bdgn">6 Month Self</div><div class="bdgd">180 days</div></div>
+          <div class="bdgb lk"><div class="bdge">✨</div><div class="bdgn">Breakthrough</div><div class="bdgd">Change a pattern</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bnav" id="bnav">
+    <div class="bni on" onclick="goTo('today')" id="bn-today"><span class="bni-ic">✍️</span><span class="bni-lb">Today</span></div>
+    <div class="bni" onclick="goTo('mood')" id="bn-mood"><span class="bni-ic">😊</span><span class="bni-lb">Mood</span></div>
+    <div class="bni" onclick="goTo('insights')" id="bn-insights"><span class="bni-ic">✦</span><span class="bni-lb">Insight</span></div>
+    <div class="bni" onclick="goTo('progress')" id="bn-progress"><span class="bni-ic">🏆</span><span class="bni-lb">Progress</span></div>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div class="overlay" id="hov" onclick="closeH()"></div>
+  <div class="hpanel" id="hpanel">
+    <div class="hp-hd">
+      <div class="hp-ttl">Entry <em>History</em></div>
+      <div class="hp-x" onclick="closeH()">✕</div>
+    </div>
+    <div class="hp-srch"><span>🔍</span><input type="text" placeholder="Search all entries..." id="hsi" oninput="filtH()"/></div>
+    <div class="hp-flt" id="hpflt">
+      <button class="hfc on" onclick="setHF(this,'all')">All</button>
+      <button class="hfc" onclick="setHF(this,'work')">💼 Work</button>
+      <button class="hfc" onclick="setHF(this,'food')">🥗 Food</button>
+      <button class="hfc" onclick="setHF(this,'health')">🏃 Health</button>
+      <button class="hfc" onclick="setHF(this,'sleep')">😴 Sleep</button>
+      <button class="hfc" onclick="setHF(this,'money')">💸 Money</button>
+      <button class="hfc" onclick="setHF(this,'happy')">😊 Happy</button>
+      <button class="hfc" onclick="setHF(this,'anxious')">😟 Anxious</button>
+    </div>
+    <div class="hp-lst" id="hplst"></div>
+  </div>
+
+  <!-- PROFILE PANEL -->
+  <div class="overlay" id="pov" onclick="closeProf()"></div>
+  <div class="ppanel" id="ppanel">
+    <div class="pp-hd"><div class="pp-bk" onclick="closeProf()">← Back</div><span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink)">My Profile</span></div>
+    <div class="pp-av-sec">
+      <div class="pp-av" id="ppav" onclick="chAv()">🧑</div>
+      <input class="pp-ni" id="ppni" value="Your Name" onchange="savNm()"/>
+      <div class="pp-jd">Member since March 2026</div>
+      <div class="pp-pt">🌙 Night Reflector · Emotional Thinker</div>
+    </div>
+    <div class="pp-stats">
+      <div class="pp-st"><div class="pp-sn">67</div><div class="pp-sl">Entries</div></div>
+      <div class="pp-st"><div class="pp-sn">14</div><div class="pp-sl">Streak</div></div>
+      <div class="pp-st"><div class="pp-sn">5</div><div class="pp-sl">Patterns</div></div>
+    </div>
+    <div class="pp-sec">
+      <div class="pp-sec-t">Your stats</div>
+      <div class="pp-row"><span class="pp-rl">Most common mood</span><span class="pp-rv">😌 Calm</span></div>
+      <div class="pp-row"><span class="pp-rl">Best journaling time</span><span class="pp-rv">After 9 PM</span></div>
+      <div class="pp-row"><span class="pp-rl">Most written about</span><span class="pp-rv">Work</span></div>
+      <div class="pp-row"><span class="pp-rl">Longest streak ever</span><span class="pp-rv">21 days</span></div>
+      <div class="pp-row"><span class="pp-rl">Words written</span><span class="pp-rv">~14,200</span></div>
+      <div class="pp-row"><span class="pp-rl">Level</span><span class="pp-rv">14 · Self-Aware</span></div>
+      <button class="pp-btn" onclick="closeProf()">Done ✓</button>
+    </div>
+  </div>
+
+  <!-- SHARE -->
+  <div class="sh-ov" id="shov">
+    <div class="sh-card">
+      <div class="sc-top"><div class="sc-logo">Mirror</div><div class="sc-dt">MARCH 2026</div></div>
+      <div class="sc-big">14</div><div class="sc-bl">Day streak 🔥</div>
+      <div class="sc-div"></div>
+      <div class="sc-row">
+        <div class="sc-itm"><div class="sc-in">67</div><div class="sc-il">Entries</div></div>
+        <div class="sc-itm"><div class="sc-in">84%</div><div class="sc-il">Consistency</div></div>
+        <div class="sc-itm"><div class="sc-in">5</div><div class="sc-il">Patterns</div></div>
+      </div>
+      <div class="sc-pat"><div class="sc-pt">Top pattern</div><div class="sc-px">Anxious on Mondays · 9 weeks in a row</div></div>
+      <div class="sc-pat" style="background:#101614;border-color:#1E3028;"><div class="sc-pt" style="color:var(--grn)">Growth</div><div class="sc-px">Sleep improves after exercise · 11× confirmed</div></div>
+      <div class="sc-ft"><div class="sc-ftx">Most felt: Calm 😌 · 12 days</div><div class="sc-flogo">Mirror</div></div>
+    </div>
+    <div class="sh-acts">
+      <button class="sh-btn pr" onclick="closeSh()">📤 Share</button>
+      <button class="sh-btn sc" onclick="closeSh()">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- DETAIL SHEET -->
+  <div class="det-ov" id="detov" onclick="closeDet(event)">
+    <div class="det-sh" id="detsh">
+      <div class="ds-hdl"></div>
+      <div id="detcont"></div>
+      <button class="ds-cls" onclick="closeDet()">Close</button>
+    </div>
+  </div>
+
+  <!-- CALM BREATHING MODAL -->
+  <div class="calm-ov" id="calmov">
+    <div class="calm-box">
+      <div class="calm-emoji">🌿</div>
+      <div class="calm-ttl">Let's slow down</div>
+      <div class="calm-sub">You logged feeling anxious or low.<br/>Take 4 breaths with Mirror.</div>
+      <div class="calm-ring">
+        <svg viewBox="0 0 80 80" width="80" height="80">
+          <circle cx="40" cy="40" r="35"/>
+          <circle class="progress" cx="40" cy="40" r="35" id="cring"/>
+        </svg>
+        <div class="calm-ring-txt" id="ctxt">4</div>
+      </div>
+      <div class="calm-inst" id="cinst">Breathe in...</div>
+      <button class="calm-skip" onclick="closeCal()">Skip for now</button>
+    </div>
+  </div>
+
+</div>
+
+  <!-- ENTRY DETAIL VIEW -->
+  <div class="overlay" id="edov" onclick="closeED()"></div>
+  <div class="ed-panel" id="edpanel">
+    <div class="ed-hd">
+      <div class="pp-bk" onclick="closeED()">← Back</div>
+      <span class="ed-title">Entry</span>
+    </div>
+    <div class="ed-body" id="edbody"></div>
+  </div>
+
+
+<!-- ══ ONBOARDING SCREEN ══ -->
+<div class="ob-screen" id="ob-screen">
+  <div class="ob-logo-big">M<em>i</em>rror</div>
+  <div class="ob-tagline">know yourself</div>
+
+  <div class="ob-progress"><div class="ob-progress-fill" id="ob-prog" style="width:33%"></div></div>
+
+  <div class="ob-dots">
+    <div class="ob-dot on" id="od1"></div>
+    <div class="ob-dot" id="od2"></div>
+    <div class="ob-dot" id="od3"></div>
+  </div>
+
+  <!-- STEP 1 — NAME -->
+  <div class="ob-step active" id="ob-s1">
+    <div class="ob-emoji">👋</div>
+    <div class="ob-q">What should we<br/><em>call you?</em></div>
+    <div class="ob-hint">This is just for your Mirror. Nobody else sees this.</div>
+    <input class="ob-input" id="ob-name" placeholder="Your name" maxlength="30"/>
+    <button class="ob-btn" onclick="obNext(1)">Continue →</button>
+    <button class="ob-skip" onclick="obSkip(1)">Skip for now</button>
+  </div>
+
+  <!-- STEP 2 — DIARY NAME -->
+  <div class="ob-step" id="ob-s2">
+    <div class="ob-emoji">📖</div>
+    <div class="ob-q">What do you want to<br/><em>name your diary?</em></div>
+    <div class="ob-hint">Could be anything. "My Thoughts", "Daily Log", or leave it blank.</div>
+    <input class="ob-input" id="ob-diary" placeholder="My Diary" maxlength="40"/>
+    <button class="ob-btn" onclick="obNext(2)">Continue →</button>
+    <button class="ob-skip" onclick="obSkip(2)">Skip for now</button>
+  </div>
+
+  <!-- STEP 3 — NOTIFICATIONS -->
+  <div class="ob-step" id="ob-s3">
+    <div class="ob-emoji">🔔</div>
+    <div class="ob-q">Stay consistent<br/>with <em>reminders</em></div>
+    <div class="ob-hint">Mirror will remind you once a day if you haven't written. You can turn this off anytime.</div>
+    <button class="ob-btn" onclick="obAllowNotif()">Allow daily reminder</button>
+    <button class="ob-skip" onclick="obFinish()">No thanks, skip</button>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATION PROMPT ══ -->
+<div class="notif-ov" id="notif-ov">
+  <div class="notif-sheet">
+    <div class="notif-emoji">🔔</div>
+    <div class="notif-ttl">Daily reminder</div>
+    <div class="notif-sub">Haven't written today yet. Take 2 minutes to check in with yourself.</div>
+    <button class="notif-btn" onclick="openFromNotif()">Write now →</button>
+    <button class="notif-skip" onclick="closeNotif()">Maybe later</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved ✓</div>
+
+<script>
+// ── DATA ──
+var DB = [
+  {id:1,time:'TODAY · 8:14 AM',text:"Woke up tired again. Couldn't stop thinking about the presentation. Skipped breakfast. Feeling behind already.",tags:['work','stress'],mood:'anxious',em:'😟'},
+  {id:2,time:'YESTERDAY · 1:30 PM',text:'Had a really good salad for lunch. Felt light after. Should eat properly more often.',tags:['food','health'],mood:'calm',em:'😌'},
+  {id:3,time:'YESTERDAY · 10:30 PM',text:'Late night walk with dad helped. Grateful for small things — the chai, the quiet, the stars.',tags:['family'],mood:'happy',em:'😊'},
+  {id:4,time:'SAT · 2:15 PM',text:"Overspent again. Third time this week. I do this when I'm stressed about work.",tags:['money','stress'],mood:'frustrated',em:'😤'},
+  {id:5,time:'FRI · 7:00 AM',text:'Morning run — 5km. Felt amazing. Slept so well. Exercise really changes everything.',tags:['exercise','health','sleep'],mood:'good',em:'🙂'}
+];
+var curF='all', curHF='all', selMood='', selEm='', aTags={}, recOn=false, profNm='Your Name', pIdx=0;
+var avs=['🧑','👤','🧔','👩','🧕','👨‍💻','🧘','🌟'], avI=0;
+
+// ── NAV ──
+var SCR=['today','mood','insights','progress'];
+function goTo(nm){
+  SCR.forEach(function(s){
+    var el=document.getElementById('s-'+s);
+    el.classList.remove('active');
+    el.style.display='none';
+    var b=document.getElementById('bn-'+s); if(b) b.classList.remove('on');
+  });
+  var sc=document.getElementById('s-'+nm);
+  sc.classList.add('active');
+  sc.style.display='flex';
+  sc.classList.remove('fin'); void sc.offsetWidth; sc.classList.add('fin');
+  document.getElementById('bn-'+nm).classList.add('on');
+  var sb=document.getElementById('sb'), bn=document.getElementById('bnav'), lg=document.getElementById('sblogo'), hb=document.getElementById('hbtn');
+  if(nm==='insights'){sb.classList.add('dk-sb');bn.classList.add('dk');lg.classList.add('lt');hb.classList.add('lt');}
+  else{sb.classList.remove('dk-sb');bn.classList.remove('dk');lg.classList.remove('lt');hb.classList.remove('lt');}
+}
+
+// ── CLOCK ──
+function tick(){var n=new Date(),h=n.getHours()%12||12,m=n.getMinutes();document.getElementById('sbt').textContent=h+':'+(m<10?'0':'')+m;}
+tick(); setInterval(tick,10000);
+
+// ── DATE ──
+var DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var nd=new Date();
+document.getElementById('tddate').textContent=DN[nd.getDay()]+' · '+MN[nd.getMonth()]+' '+nd.getDate()+' · '+nd.getFullYear();
+
+// ── ENTRY TIME ──
+function etick(){var n=new Date(),h=n.getHours()%12||12,m=n.getMinutes(),ap=n.getHours()>=12?'PM':'AM';document.getElementById('etm').textContent=h+':'+(m<10?'0':'')+m+' '+ap;}
+etick(); setInterval(etick,30000);
+
+// ── MOOD ──
+function pickMood(el,mood,em){
+  document.querySelectorAll('.mchip').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on'); selMood=mood; selEm=em;
+}
+
+// ── TAGS ──
+function togTag(el,key,lbl){
+  el.classList.toggle('on');
+  if(el.classList.contains('on')) aTags[key]=lbl; else delete aTags[key];
+}
+
+// ── MIC ──
+function togMic(){
+  recOn=!recOn;
+  var b=document.getElementById('micb'), rb=document.getElementById('recbar');
+  if(recOn){b.classList.add('rec');b.textContent='⏹';rb.classList.add('show');}
+  else{
+    b.classList.remove('rec');b.textContent='🎙';rb.classList.remove('show');
+    var ta=document.getElementById('mta');
+    if(!ta.value.trim()){
+      ta.value="I've been feeling a bit overwhelmed today. The morning was rough but after a short walk outside things felt a bit lighter.";
+      showAI("...sometimes the smallest movement is enough to shift everything. You already know this about yourself.");
+    }
+  }
+}
+
+// ── AI SUGGEST ──
+function showAI(txt){
+  document.getElementById('aitxt').textContent=txt;
+  document.getElementById('aibox').style.display='block';
+}
+
+// ── PROMPTS ──
+var prompts=["What's one thing that drained your energy today, and why?","Describe one small win — even the tiniest one.","What kept coming back to your mind today?","If today was a colour, what would it be and why?","What are you carrying that you need to put down?","Who made you feel seen today, even in a small way?","What would a calmer version of you do differently tomorrow?","What made you smile today, even briefly?"];
+function doPrompt(){
+  var ta=document.getElementById('mta');
+  var p=prompts[pIdx%prompts.length]; pIdx++;
+  if(ta.value.trim()) ta.value+='\n\n';
+  ta.value+='→ '+p+'\n'; ta.focus(); toast('Prompt added ✦');
+}
+
+// ── SAVE ──
+var tcm={work:'t-work',food:'t-food',health:'t-health',sleep:'t-sleep',money:'t-money',family:'t-family',exercise:'t-health',relationship:'t-mood',stress:'t-stress'};
+var moodAnim={calm:false,anxious:true,good:false,low:true,happy:false,frustrated:false};
+function saveE(){
+  var ta=document.getElementById('mta'), txt=ta.value.trim();
+  if(!txt){toast('Write something first 🖊');return;}
+  var n=new Date(),h=n.getHours()%12||12,m=n.getMinutes(),ap=n.getHours()>=12?'PM':'AM';
+  var ts='TODAY · '+h+':'+(m<10?'0':'')+m+' '+ap;
+  var em=selEm||'📝', mood=selMood||'neutral', tags=Object.keys(aTags);
+  DB.unshift({id:Date.now(),time:ts,text:txt,tags:tags,mood:mood,em:em});
+  var th='';
+  tags.forEach(function(t){th+='<span class="etag '+(tcm[t]||'t-new')+'">'+aTags[t]+'</span>';});
+  if(selMood) th+='<span class="etag t-mood">'+em+' '+selMood+'</span>';
+  var card=document.createElement('div');
+  card.className='ec fin'; card.dataset.tags=tags.join(' ')+' '+mood; card.dataset.mood=mood;
+  card.innerHTML='<div class="ect"><span class="ectm">'+ts+'</span><span class="ecem">'+em+'</span></div>'+
+    '<div class="ectx">'+txt.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>'+
+    (th?'<div class="ectags">'+th+'</div>':'');
+  // entries now live in history panel only
+  // no DOM insert into today screen
+  ta.value=''; selMood=''; selEm=''; aTags={};
+  document.querySelectorAll('.mchip').forEach(function(c){c.classList.remove('on');});
+  document.querySelectorAll('.qtc').forEach(function(c){c.classList.remove('on');});
+  document.getElementById('aibox').style.display='none';
+  rendH();
+  localStorage.setItem('mirror_last_write', Date.now());
+  saveToSupabase({text:txt, mood:mood, tags:tags});
+  if(moodAnim[mood]) setTimeout(openCal,400);
+  else toast('Saved ✓  +10 XP');
+}
+
+// ── FILTER ──
+var cfilt='all';
+function setF(el,f){
+  cfilt=f;
+  document.querySelectorAll('.fc').forEach(function(c){c.classList.remove('on');}); el.classList.add('on'); doFilter();
+}
+function doFilter(){
+  // filter now runs inside history panel
+  filtH();
+}
+
+// ── HISTORY ──
+function openH(){rendH();document.getElementById('hov').classList.add('open');document.getElementById('hpanel').classList.add('open');}
+function closeH(){document.getElementById('hov').classList.remove('open');document.getElementById('hpanel').classList.remove('open');}
+function rendH(){
+  var lst=document.getElementById('hplst');
+  var q=(document.getElementById('hsi')?document.getElementById('hsi').value:'').toLowerCase();
+  var es=DB.filter(function(e){
+    var tm=curHF==='all'||e.tags.includes(curHF)||e.mood===curHF;
+    var sm=!q||e.text.toLowerCase().includes(q)||(e.tags.join(' ')).includes(q);
+    return tm&&sm;
+  });
+  if(!es.length){lst.innerHTML='<div class="hp-empty">No entries found.</div>';return;}
+  lst.innerHTML=es.map(function(e){
+    var tg=e.tags.map(function(t){return'<span class="hpe-tag '+(tcm[t]||'t-new')+'">'+t+'</span>';}).join('');
+    return'<div class="hpe" onclick="openED('+e.id+')"><div class="hpe-t"><span class="hpe-dt">'+e.time+'</span><span class="hpe-em">'+e.em+'</span></div>'+
+      '<div class="hpe-tx">'+e.text.substring(0,90)+(e.text.length>90?'...':'')+'</div>'+
+      (tg?'<div class="hpe-tags">'+tg+'</div>':'')+'</div>';
+  }).join('');
+}
+function filtH(){rendH();}
+function setHF(el,f){
+  curHF=f;
+  document.querySelectorAll('.hfc').forEach(function(c){c.classList.remove('on');}); el.classList.add('on'); rendH();
+}
+
+// ── PROFILE ──
+function openProf(){document.getElementById('pov').classList.add('open');document.getElementById('ppanel').classList.add('open');}
+function closeProf(){document.getElementById('pov').classList.remove('open');document.getElementById('ppanel').classList.remove('open');}
+function savNm(){var n=document.getElementById('ppni').value;profNm=n;document.getElementById('pcnm').textContent=n||'Your Profile';}
+function chAv(){avI=(avI+1)%avs.length;document.getElementById('ppav').textContent=avs[avI];document.getElementById('pcav').textContent=avs[avI];}
+
+// ── SHARE ──
+function openSh(){document.getElementById('shov').classList.add('open');}
+function closeSh(){document.getElementById('shov').classList.remove('open');toast('Share card ready 📤');}
+
+// ── DETAIL ──
+var dets={
+  pattern:{badge:'Pattern',bc:'bg-gld',em:'📅',title:'Anxiety peaks every Monday.',
+    body:'Over 9 weeks, every Monday entry contains words like "tired", "stressed", "behind". In 8 of 9 cases you also skipped breakfast or only had coffee. This is a cycle — not bad luck.',
+    stats:[{n:'9×',l:'Weeks in a row'},{n:'8/9',l:'With skipped meals'},{n:'Mon',l:'Most anxious day'}],
+    tip:'Prepare something small on Sunday night — a meal plan, a 10-minute morning plan. Breaking one part of the cycle breaks all of it.'},
+  growth:{badge:'Growth',bc:'bg-grn',em:'💪',title:'Exercise changes your sleep.',
+    body:'On every day you logged exercise or a walk, your next sleep entry was positive — "rested", "better", "clear". On days without movement, sleep entries were neutral or negative. Confirmed 11 times.',
+    stats:[{n:'11×',l:'Confirmed'},{n:'100%',l:'Correlation'},{n:'+40%',l:'Better mood next day'}],
+    tip:"You don't need a gym. Even a 20 minute walk produces the same result in your data. The threshold is very low."},
+  watch:{badge:'Watch',bc:'bg-red',em:'💸',title:'Stress triggers spending.',
+    body:'Every time you wrote about overspending — 7 entries total — the same or previous day had high stress language. Work pressure appears in 6 of 7. This is emotional spending.',
+    stats:[{n:'7/7',l:'Triggered by stress'},{n:'6/7',l:'Linked to work'},{n:'₹',l:'Preventable cost'}],
+    tip:'When you feel the urge to buy something non-essential, write it here first. Your data shows that writing releases the same pressure.'},
+  personality:{badge:'Personality',bc:'bg-blu',em:'🌙',title:'You think best at night.',
+    body:'74% of your entries are after 9 PM. Your night entries are 40% longer and contain more self-reflection and emotional depth. You are not a morning person — and that is fine.',
+    stats:[{n:'74%',l:'Entries after 9 PM'},{n:'40%',l:'Longer at night'},{n:'🌙',l:'Your power hour'}],
+    tip:'Stop forcing morning journaling. Your data shows your real self comes out at night. Honor that.'},
+  bestday:{badge:'Best Day',bc:'bg-prc',em:'⭐',title:'Your best days have a formula.',
+    body:'Every entry rated "Good" or "Happy" — across all 67 entries — shares the same combination: slept before midnight the night before AND walked or exercised. Not one exception.',
+    stats:[{n:'100%',l:'Of your best days'},{n:'2',l:'Things needed'},{n:'0',l:'Exceptions found'}],
+    tip:'Sleep before midnight. Move your body. Your own data proves this works every single time.'}
+};
+function openDet(k){
+  var d=dets[k]; if(!d)return;
+  var html='<span class="ds-bdg '+d.bc+'">'+d.badge+'</span>'+
+    '<div class="ds-ttl">'+d.title+'</div>'+
+    '<div class="ds-body">'+d.body+'</div>'+
+    '<div class="ds-stats">'+d.stats.map(function(s){return'<div class="ds-stat"><div class="ds-sn">'+s.n+'</div><div class="ds-sl">'+s.l+'</div></div>';}).join('')+'</div>'+
+    '<div class="ds-tip"><div class="ds-tl">✦ What to do</div><div class="ds-tx">'+d.tip+'</div></div>';
+  document.getElementById('detcont').innerHTML=html;
+  document.getElementById('detov').classList.add('open');
+}
+function closeDet(e){
+  if(!e||e.target===document.getElementById('detov')||!e.target){document.getElementById('detov').classList.remove('open');}
+}
+
+// ── CALM BREATHING ──
+var cTimer=null, cPhase=0, cCount=4;
+var phases=['Breathe in...','Hold...','Breathe out...','Hold...'];
+var pDur=[4,2,4,2];
+function openCal(){
+  document.getElementById('calmov').classList.add('open');
+  cCount=4; cPhase=0;
+  document.getElementById('ctxt').textContent=cCount;
+  document.getElementById('cinst').textContent=phases[0];
+  document.getElementById('cring').style.strokeDashoffset=220;
+  runBreath();
+}
+function runBreath(){
+  var dur=pDur[cPhase], tot=dur;
+  cCount=dur;
+  document.getElementById('ctxt').textContent=cCount;
+  document.getElementById('cinst').textContent=phases[cPhase];
+  var offset=220;
+  document.getElementById('cring').style.transition='stroke-dashoffset '+dur+'s linear';
+  if(cPhase===0||cPhase===2) document.getElementById('cring').style.strokeDashoffset=0;
+  else document.getElementById('cring').style.strokeDashoffset=220;
+  cTimer=setInterval(function(){
+    cCount--;
+    document.getElementById('ctxt').textContent=cCount>0?cCount:'';
+    if(cCount<=0){
+      clearInterval(cTimer);
+      cPhase=(cPhase+1)%4;
+      if(cPhase===0){closeCal();return;}
+      setTimeout(runBreath,300);
+    }
+  },1000);
+}
+function closeCal(){
+  clearInterval(cTimer); document.getElementById('calmov').classList.remove('open'); toast('Saved ✓  +10 XP');
+}
+
+// ── CALENDAR ──
+var calM=2, calY=2026;
+var mdots=['#C97070','#C8A96E','#6A9E7F','#6A83A0','#6A9E7F','#C8A96E','#C97070'];
+function buildCal(){
+  var g=document.getElementById('calgr'); g.innerHTML='';
+  document.getElementById('monnm').textContent=MN[calM]+' '+calY;
+  var fd=new Date(calY,calM,1).getDay(), off=fd===0?6:fd-1;
+  var dim=new Date(calY,calM+1,0).getDate();
+  for(var i=0;i<off;i++){var c=document.createElement('div');c.className='cc';g.appendChild(c);}
+  var td=new Date();
+  for(var d=1;d<=dim;d++){
+    var c=document.createElement('div');
+    var it=(d===td.getDate()&&calM===td.getMonth()&&calY===td.getFullYear());
+    c.className='cc'+(it?' today':''); c.textContent=d;
+    if(!it&&d<td.getDate()||(calM<td.getMonth())){
+      var dot=document.createElement('div'); dot.className='mdot';
+      dot.style.background=mdots[d%7]; c.appendChild(dot);
+    }
+    g.appendChild(c);
+  }
+}
+function chMon(d){calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}buildCal();}
+buildCal();
+
+// ── WEEK DOTS ──
+var wdn=['M','T','W','T','F','S','S'];
+var wr=document.getElementById('wkrow');
+for(var i=0;i<7;i++){
+  var wd=document.createElement('div'); wd.className='wkd';
+  var it=i===6, dn=i<=5;
+  wd.innerHTML='<div class="wkc '+(it?'today':dn?'done':'')+'">'+((dn&&!it)?'✓':(it?'★':''))+'</div><div class="wkn">'+wdn[i]+'</div>';
+  wr.appendChild(wd);
+}
+
+// ── HEATMAP ──
+var hm=document.getElementById('hmap'), lv=['','l1','l2','l3','l4'];
+for(var i=0;i<84;i++){
+  var hc=document.createElement('div'), r=Math.random();
+  hc.className='hc '+(r<0.15?'':r<0.35?lv[1]:r<0.6?lv[2]:r<0.8?lv[3]:lv[4]);
+  hm.appendChild(hc);
+}
+
+// ── LINE CHART ──
+(function(){
+  var pts=[2,4,3,5,3,4,6,5,7,6,5,7,8,7];
+  var svg=document.getElementById('lc');
+  var w=330, h=80, n=pts.length;
+  var mx=Math.max.apply(null,pts), mn=Math.min.apply(null,pts);
+  var xs=pts.map(function(p,i){return (i/(n-1))*w;});
+  var ys=pts.map(function(p){return h-((p-mn)/(mx-mn||1))*(h-16)-8;});
+  // fill
+  var fp='M'+xs[0]+','+h+' L'+xs.map(function(x,i){return x+','+ys[i];}).join(' L')+' L'+xs[n-1]+','+h+' Z';
+  var fill=document.createElementNS('http://www.w3.org/2000/svg','path');
+  fill.setAttribute('d',fp); fill.setAttribute('fill','rgba(200,169,110,0.1)'); svg.appendChild(fill);
+  // line
+  var lp='M'+xs.map(function(x,i){return x+','+ys[i];}).join(' L');
+  var line=document.createElementNS('http://www.w3.org/2000/svg','path');
+  line.setAttribute('d',lp); line.setAttribute('fill','none'); line.setAttribute('stroke','#C8A96E'); line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round'); svg.appendChild(line);
+  // dots
+  xs.forEach(function(x,i){
+    var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',x); c.setAttribute('cy',ys[i]); c.setAttribute('r','3');
+    c.setAttribute('fill','#C8A96E'); svg.appendChild(c);
+  });
+})();
+
+// ── TOAST ──
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2600);}
+
+
+function openED(id){
+  var e=DB.find(function(x){return x.id===id;});
+  if(!e) return;
+  var tcm2={work:'t-work',food:'t-food',health:'t-health',sleep:'t-sleep',money:'t-money',family:'t-family',exercise:'t-health',relationship:'t-mood',stress:'t-stress'};
+  var tg=e.tags.map(function(t){return'<span class="etag '+(tcm2[t]||'t-new')+'">'+t+'</span>';}).join('');
+  document.getElementById('edbody').innerHTML=
+    '<div class="ed-em">'+e.em+'</div>'+
+    '<div class="ed-time">'+e.time+'</div>'+
+    '<div class="ed-text">'+e.text.replace(/\n/g,'<br>')+'</div>'+
+    (tg?'<div class="ed-tags">'+tg+'</div>':'')+
+    (e.mood?'<div class="ed-mood-pill">'+e.em+' '+e.mood+'</div>':'');
+  document.getElementById('edov').classList.add('open');
+  document.getElementById('edpanel').classList.add('open');
+}
+function closeED(){
+  document.getElementById('edov').classList.remove('open');
+  document.getElementById('edpanel').classList.remove('open');
+}
+
+
+// ══════════════════════════════════════
+// SUPABASE SETUP
+// ══════════════════════════════════════
+const SURL = 'https://vkmtbqfkzaurqdyqqogc.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrbXRicWZremF1cnFkeXFxb2djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDQ5NDAsImV4cCI6MjA5MDA4MDk0MH0.I5i0NGr42mA_bdEaRqTBiLShWk17berpkmIwlOg893g';
+const supa = supabase.createClient(SURL, SKEY);
+var currentUserId = null;
+
+// Sign in anonymously — gives every user a private unique ID
+async function signInAnon() {
+  try {
+    // Check if we already have a session
+    const { data: { session } } = await supa.auth.getSession();
+    if(session && session.user) {
+      currentUserId = session.user.id;
+      console.log('Existing user:', currentUserId);
+    } else {
+      const { data, error } = await supa.auth.signInAnonymously();
+      if(error) { console.error('Auth error:', error); return; }
+      currentUserId = data.user.id;
+      console.log('New anonymous user:', currentUserId);
+    }
+    // Load entries from database
+    await loadEntries();
+  } catch(e) {
+    console.error('Supabase error:', e);
+  }
+}
+
+// Save entry to Supabase
+async function saveToSupabase(entry) {
+  if(!currentUserId) return;
+  try {
+    const { error } = await supa.from('entries').insert({
+      user_id: currentUserId,
+      text: entry.text,
+      mood: entry.mood,
+      tags: entry.tags.join(','),
+      created_at: new Date().toISOString()
+    });
+    if(error) console.error('Save error:', error);
+  } catch(e) {
+    console.error('Save error:', e);
+  }
+}
+
+// Load all entries from Supabase
+async function loadEntries() {
+  if(!currentUserId) return;
+  try {
+    const { data, error } = await supa.from('entries')
+      .select('*')
+      .eq('user_id', currentUserId)
+      .order('created_at', { ascending: false });
+    if(error) { console.error('Load error:', error); return; }
+    if(data && data.length > 0) {
+      // Add to DB array
+      data.forEach(function(row) {
+        var exists = DB.find(function(e) { return e.id === row.id; });
+        if(!exists) {
+          var moodEmojis = {calm:'😌',anxious:'😟',good:'🙂',low:'😔',happy:'😊',frustrated:'😤',neutral:'📝'};
+          DB.push({
+            id: row.id,
+            time: formatDate(row.created_at),
+            text: row.text,
+            mood: row.mood || 'neutral',
+            tags: row.tags ? row.tags.split(',').filter(Boolean) : [],
+            em: moodEmojis[row.mood] || '📝'
+          });
+        }
+      });
+      rendH();
+    }
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+}
+
+function formatDate(iso) {
+  var d = new Date(iso);
+  var now = new Date();
+  var diff = Math.floor((now - d) / (1000*60*60*24));
+  var timeStr = d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  if(diff === 0) return 'TODAY · ' + timeStr;
+  if(diff === 1) return 'YESTERDAY · ' + timeStr;
+  var days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  return days[d.getDay()] + ' · ' + timeStr;
+}
+
+// Start Supabase connection
+signInAnon();
+
+// Init
+rendH();
+
+// ══ ONBOARDING ══
+var userName = localStorage.getItem('mirror_name') || '';
+var diaryName = localStorage.getItem('mirror_diary') || 'My Diary';
+var obDone = localStorage.getItem('mirror_ob_done') || '';
+
+function initApp() {
+  if(obDone) {
+    // Returning user — hide onboarding immediately
+    var ob = document.getElementById('ob-screen');
+    ob.style.display = 'none';
+    applyUserName();
+    checkDailyReminder();
+  } else {
+    // First time — show onboarding
+    document.getElementById('ob-screen').style.display = 'flex';
+  }
+}
+
+function applyUserName() {
+  var nm = localStorage.getItem('mirror_name') || '';
+  var dn = localStorage.getItem('mirror_diary') || '';
+  if(nm) {
+    // Update greeting
+    var gr = document.querySelector('.td-gr');
+    if(gr) gr.innerHTML = 'Good ' + getTimeOfDay() + ',<br/><em>' + nm + '</em>';
+    // Update profile name
+    var pcnm = document.getElementById('pcnm');
+    if(pcnm) pcnm.textContent = nm;
+    var ppni = document.getElementById('ppni');
+    if(ppni) ppni.value = nm;
+  }
+  if(dn) {
+    var wclbl = document.querySelector('.wc-lbl');
+    if(wclbl) wclbl.textContent = dn;
+  }
+}
+
+function getTimeOfDay() {
+  var h = new Date().getHours();
+  if(h < 12) return 'morning';
+  if(h < 17) return 'afternoon';
+  return 'evening';
+}
+
+function obNext(step) {
+  if(step === 1) {
+    var nm = document.getElementById('ob-name').value.trim();
+    if(nm) localStorage.setItem('mirror_name', nm);
+    showObStep(2);
+  } else if(step === 2) {
+    var dn = document.getElementById('ob-diary').value.trim();
+    localStorage.setItem('mirror_diary', dn || 'My Diary');
+    showObStep(3);
+  }
+}
+
+function obSkip(step) {
+  if(step === 1) {
+    localStorage.setItem('mirror_name', 'Friend');
+    showObStep(2);
+  } else if(step === 2) {
+    localStorage.setItem('mirror_diary', 'My Diary');
+    showObStep(3);
+  }
+}
+
+function showObStep(n) {
+  document.querySelectorAll('.ob-step').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('ob-s'+n).classList.add('active');
+  // Update dots
+  document.querySelectorAll('.ob-dot').forEach(function(d,i){
+    d.classList.toggle('on', i < n);
+  });
+  // Update progress
+  var pct = (n/3)*100;
+  document.getElementById('ob-prog').style.width = pct + '%';
+}
+
+function obAllowNotif() {
+  if('Notification' in window) {
+    Notification.requestPermission().then(function(perm) {
+      if(perm === 'granted') {
+        localStorage.setItem('mirror_notif', '1');
+        scheduleDailyReminder();
+      }
+      obFinish();
+    });
+  } else {
+    obFinish();
+  }
+}
+
+function obFinish() {
+  localStorage.setItem('mirror_ob_done', '1');
+  var ob = document.getElementById('ob-screen');
+  ob.classList.add('hide');
+  setTimeout(function(){ ob.style.display='none'; }, 500);
+  applyUserName();
+}
+
+// ══ NOTIFICATIONS ══
+function scheduleDailyReminder() {
+  // Store the time they finished onboarding
+  localStorage.setItem('mirror_last_write', Date.now());
+}
+
+function checkDailyReminder() {
+  var notifOn = localStorage.getItem('mirror_notif');
+  if(!notifOn) return;
+  var lastWrite = parseInt(localStorage.getItem('mirror_last_write') || '0');
+  var now = Date.now();
+  var hoursSince = (now - lastWrite) / (1000 * 60 * 60);
+  // If more than 20 hours since last write — show reminder
+  if(hoursSince > 20 && lastWrite > 0) {
+    setTimeout(function(){
+      document.getElementById('notif-ov').classList.add('open');
+    }, 3000);
+  }
+}
+
+function closeNotif() {
+  document.getElementById('notif-ov').classList.remove('open');
+}
+
+function openFromNotif() {
+  closeNotif();
+  goTo('today');
+  document.getElementById('mta').focus();
+}
+
+// Update last write time when entry saved
+var origSaveE = saveE;
+// Wrap saveE to also update last write time
+var _origSaveERef = null;
+
+// ══ INIT ══
+initApp();
+
+</script>
+</body>
+</html>
