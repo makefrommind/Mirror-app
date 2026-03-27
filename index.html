@@ -505,7 +505,7 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
     <div class="td-top">
       <div class="td-date" id="tddate">Monday · March 24 · 2026</div>
       <div class="td-gr" id="td-greeting">How was your<br/><em>day so far?</em></div>
-      <div class="streak-pill">🔥 14 day streak</div>
+      <div class="streak-pill" id="streak-pill">✍️ Start your streak</div>
     </div>
     <div class="recbar" id="recbar">
       <div class="recdot"></div>
@@ -691,13 +691,13 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
         <div class="pca" id="pcav">🧑</div>
         <div class="pci">
           <div class="pcn" id="pcnm">Your Profile</div>
-          <div class="pct">Member since March 2026 · 67 entries</div>
+          <div class="pct" id="pct-tagline">New member · 0 entries</div>
           <div class="pcpt">🌙 Night Reflector</div>
         </div>
         <div class="pcar">›</div>
       </div>
       <div class="strk-h">
-        <div><div class="strk-n">14</div><div class="strk-l">Day streak</div></div>
+        <div><div class="strk-n" id="strk-num">0</div><div class="strk-l">Day streak</div></div>
         <div class="strk-f">🔥</div>
       </div>
       <div class="wk-sec">
@@ -708,18 +708,18 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
         <div class="xpt">
           <div>
             <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:3px">Self-awareness level</div>
-            <div class="xpl">14 <span>/ 50</span></div>
+            <div class="xpl"><span id="xp-level">1</span> <span>/ 50</span></div>
           </div>
           <div class="xpic">🪞</div>
         </div>
-        <div class="xpi"><span>2,340 XP</span><span>Next: 2,500 XP</span></div>
-        <div class="xpb"><div class="xpf"></div></div>
+        <div class="xpi"><span id="xp-val">0 XP</span><span>Next: 100 XP</span></div>
+        <div class="xpb"><div class="xpf" id="xpf" style="width:0%"></div></div>
         <div class="xps">Write daily, find patterns, hit streaks to earn XP and grow your level.</div>
       </div>
       <div class="sts-row">
-        <div class="stb"><div class="stn">67</div><div class="stl">Total entries</div></div>
-        <div class="stb"><div class="stn">5</div><div class="stl">Patterns</div></div>
-        <div class="stb"><div class="stn">84%</div><div class="stl">Consistency</div></div>
+        <div class="stb"><div class="stn" id="stat-entries">0</div><div class="stl">Total entries</div></div>
+        <div class="stb"><div class="stn">0</div><div class="stl">Patterns</div></div>
+        <div class="stb"><div class="stn" id="stat-consist">0%</div><div class="stl">Consistency</div></div>
       </div>
       <!-- LINE CHART -->
       <div class="chart-card">
@@ -728,7 +728,7 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
       </div>
       <div class="hmc">
         <div class="hmc-l">Entry consistency</div>
-        <div class="hmc-t">67 days recorded out of 84</div>
+        <div class="hmc-t" id="hmc-t">0 days recorded</div>
         <div class="hmap" id="hmap"></div>
       </div>
       <div class="bdgs-sec">
@@ -783,13 +783,13 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
     <div class="pp-av-sec">
       <div class="pp-av" id="ppav" onclick="chAv()">🧑</div>
       <input class="pp-ni" id="ppni" value="Your Name" onchange="savNm()"/>
-      <div class="pp-jd">Member since March 2026</div>
+      <div class="pp-jd" id="pp-joined">New member</div>
       <div class="pp-pt">🌙 Night Reflector · Emotional Thinker</div>
     </div>
     <div class="pp-stats">
-      <div class="pp-st"><div class="pp-sn">67</div><div class="pp-sl">Entries</div></div>
-      <div class="pp-st"><div class="pp-sn">14</div><div class="pp-sl">Streak</div></div>
-      <div class="pp-st"><div class="pp-sn">5</div><div class="pp-sl">Patterns</div></div>
+      <div class="pp-st"><div class="pp-sn" id="pp-entries">0</div><div class="pp-sl">Entries</div></div>
+      <div class="pp-st"><div class="pp-sn" id="pp-streak">0</div><div class="pp-sl">Streak</div></div>
+      <div class="pp-st"><div class="pp-sn">0</div><div class="pp-sl">Patterns</div></div>
     </div>
     <div class="pp-sec">
       <div class="pp-sec-t">Your stats</div>
@@ -797,8 +797,8 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
       <div class="pp-row"><span class="pp-rl">Best journaling time</span><span class="pp-rv">After 9 PM</span></div>
       <div class="pp-row"><span class="pp-rl">Most written about</span><span class="pp-rv">Work</span></div>
       <div class="pp-row"><span class="pp-rl">Longest streak ever</span><span class="pp-rv">21 days</span></div>
-      <div class="pp-row"><span class="pp-rl">Words written</span><span class="pp-rv">~14,200</span></div>
-      <div class="pp-row"><span class="pp-rl">Level</span><span class="pp-rv">14 · Self-Aware</span></div>
+      <div class="pp-row"><span class="pp-rl">Words written</span><span class="pp-rv" id="pp-words">0</span></div>
+      <div class="pp-row"><span class="pp-rl">Level</span><span class="pp-rv" id="pp-level-val">1 · Beginner</span></div>
       <button class="pp-btn" onclick="closeProf()">Done ✓</button>
     </div>
   </div>
@@ -807,7 +807,7 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
   <div class="sh-ov" id="shov">
     <div class="sh-card">
       <div class="sc-top"><div class="sc-logo">Mirror</div><div class="sc-dt">MARCH 2026</div></div>
-      <div class="sc-big">14</div><div class="sc-bl">Day streak 🔥</div>
+      <div class="sc-big" id="sc-streak">0</div><div class="sc-bl">Day streak 🔥</div>
       <div class="sc-div"></div>
       <div class="sc-row">
         <div class="sc-itm"><div class="sc-in">67</div><div class="sc-il">Entries</div></div>
@@ -922,13 +922,7 @@ svg.linechart{width:100%;height:80px;overflow:visible;}
 
 <script>
 // ── DATA ──
-var DB = [
-  {id:1,time:'TODAY · 8:14 AM',text:"Woke up tired again. Couldn't stop thinking about the presentation. Skipped breakfast. Feeling behind already.",tags:['work','stress'],mood:'anxious',em:'😟'},
-  {id:2,time:'YESTERDAY · 1:30 PM',text:'Had a really good salad for lunch. Felt light after. Should eat properly more often.',tags:['food','health'],mood:'calm',em:'😌'},
-  {id:3,time:'YESTERDAY · 10:30 PM',text:'Late night walk with dad helped. Grateful for small things — the chai, the quiet, the stars.',tags:['family'],mood:'happy',em:'😊'},
-  {id:4,time:'SAT · 2:15 PM',text:"Overspent again. Third time this week. I do this when I'm stressed about work.",tags:['money','stress'],mood:'frustrated',em:'😤'},
-  {id:5,time:'FRI · 7:00 AM',text:'Morning run — 5km. Felt amazing. Slept so well. Exercise really changes everything.',tags:['exercise','health','sleep'],mood:'good',em:'🙂'}
-];
+var DB = [];
 var curF='all', curHF='all', selMood='', selEm='', aTags={}, recOn=false, profNm='Your Name', pIdx=0;
 var avs=['🧑','👤','🧔','👩','🧕','👨‍💻','🧘','🌟'], avI=0;
 
@@ -1034,6 +1028,7 @@ function saveE(){
   rendH();
   localStorage.setItem('mirror_last_write', Date.now());
   saveToSupabase({text:txt, mood:mood, tags:tags});
+  updateStats();
   if(moodAnim[mood]) setTimeout(openCal,400);
   else toast('Saved ✓  +10 XP');
 }
@@ -1339,8 +1334,47 @@ function formatDate(iso) {
 // Start Supabase connection
 signInAnon();
 
+
+function updateStats() {
+  var total = DB.length;
+  var el = document.getElementById('stat-entries');
+  if(el) el.textContent = total;
+  var pp = document.getElementById('pp-entries');
+  if(pp) pp.textContent = total;
+  var ptag = document.getElementById('pct-tagline');
+  if(ptag) ptag.textContent = 'Member · ' + total + ' ' + (total===1?'entry':'entries');
+  // XP
+  var xp = total * 10;
+  var xvel = document.getElementById('xp-val');
+  if(xvel) xvel.textContent = xp + ' XP';
+  var lvl = Math.floor(xp/100)+1;
+  var lvlel = document.getElementById('xp-level');
+  if(lvlel) lvlel.textContent = lvl;
+  var xpf = document.getElementById('xpf');
+  if(xpf) xpf.style.width = ((xp%100)) + '%';
+  var pplv = document.getElementById('pp-level-val');
+  if(pplv) pplv.textContent = lvl + (lvl<5?' · Beginner':lvl<10?' · Growing':lvl<20?' · Self-Aware':' · Enlightened');
+  // Streak pill
+  var sp = document.getElementById('streak-pill');
+  if(sp) sp.textContent = total > 0 ? '🔥 ' + total + ' day streak' : '✍️ Start your streak';
+  var sn = document.getElementById('strk-num');
+  if(sn) sn.textContent = total;
+  var ppsk = document.getElementById('pp-streak');
+  if(ppsk) ppsk.textContent = total;
+  var sc = document.getElementById('sc-streak');
+  if(sc) sc.textContent = total;
+  // Heatmap title
+  var hmt = document.getElementById('hmc-t');
+  if(hmt) hmt.textContent = total + ' days recorded';
+  // Words estimate
+  var words = DB.reduce(function(a,e){return a+(e.text.split(' ').length);},0);
+  var ppw = document.getElementById('pp-words');
+  if(ppw) ppw.textContent = '~'+words;
+}
+
 // Init
 rendH();
+updateStats();
 
 // ══ ONBOARDING ══
 var userName = localStorage.getItem('mirror_name') || '';
@@ -1436,6 +1470,10 @@ function obAllowNotif() {
 
 function obFinish() {
   localStorage.setItem('mirror_ob_done', '1');
+  var now = new Date();
+  var joined = 'Member since ' + now.toLocaleString('en',{month:'long',year:'numeric'});
+  localStorage.setItem('mirror_joined', joined);
+  var jel = document.getElementById('pp-joined'); if(jel) jel.textContent = joined;
   var ob = document.getElementById('ob-screen');
   ob.classList.add('hide');
   setTimeout(function(){ ob.style.display='none'; }, 500);
